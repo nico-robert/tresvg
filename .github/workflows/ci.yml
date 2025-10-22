@@ -38,7 +38,8 @@ jobs:
     - name: Build resvg (Unix)
       if: runner.os != 'Windows'
       working-directory: ./resvg-source/crates/c-api
-      run: cargo build --release
+      run: |
+        RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release
 
     - name: Build resvg (Windows)
       if: runner.os == 'Windows'
