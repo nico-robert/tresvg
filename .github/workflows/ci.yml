@@ -1,0 +1,94 @@
+name: Build resvg from release
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  RESVG_VERSION: "v0.45.1"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-2022, macos-latest, macos-13]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Clone resvg at specific release
+      run: |
+        git clone --depth 1 --branch ${{ env.RESVG_VERSION }} https://github.com/linebender/resvg.git resvg-source
+
+    - name: Install Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Install Windows GNU target
+      if: runner.os == 'Windows'
+      run: rustup target add x86_64-pc-windows-gnu
+
+    - name: Build resvg (Unix)
+      if: runner.os != 'Windows'
+      working-directory: ./resvg-source/crates/c-api
+      run: cargo build --release
+
+    - name: Build resvg (Windows)
+      if: runner.os == 'Windows'
+      working-directory: ./resvg-source/crates/c-api
+      run: cargo build --release --target x86_64-pc-windows-gnu
+
+    # Upload for Linux
+    - name: Upload artifacts (Linux)
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-x86_64
+        path: |
+          resvg-source/crates/c-api/target/release/libresvg.so
+          resvg-source/crates/c-api/target/release/libresvg.a
+          resvg-source/crates/c-api/LICENSE-APACHE
+          resvg-source/crates/c-api/LICENSE-MIT
+
+    # Upload for macOS ARM (macos-latest)
+    - name: Upload artifacts (macOS ARM)
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: macosx-arm
+        path: |
+          resvg-source/crates/c-api/target/release/libresvg.dylib
+          resvg-source/crates/c-api/target/release/libresvg.a
+          resvg-source/crates/c-api/LICENSE-APACHE
+          resvg-source/crates/c-api/LICENSE-MIT
+
+    # Upload for macOS Intel (macos-13)
+    - name: Upload artifacts (macOS Intel)
+      if: matrix.os == 'macos-13'
+      uses: actions/upload-artifact@v4
+      with:
+        name: macosx-x86_64
+        path: |
+          resvg-source/crates/c-api/target/release/libresvg.dylib
+          resvg-source/crates/c-api/target/release/libresvg.a
+          resvg-source/crates/c-api/LICENSE-APACHE
+          resvg-source/crates/c-api/LICENSE-MIT
+
+    # Upload for Windows
+    - name: Upload artifacts (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: win32-x86_64
+        path: |
+          resvg-source/crates/c-api/target/x86_64-pc-windows-gnu/release/resvg.dll
+          resvg-source/crates/c-api/target/x86_64-pc-windows-gnu/release/libresvg.a
+          resvg-source/crates/c-api/LICENSE-APACHE
+          resvg-source/crates/c-api/LICENSE-MIT
