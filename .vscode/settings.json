@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*crit.tcl": "c",
+        "*.tcl": "tcl",
+    },
+    "[tcl]": {
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation":false
+    }
+}
