@@ -31,65 +31,80 @@ jobs:
       with:
         toolchain: stable
 
+    # Build Unix (Linux + macOS)
     - name: Build resvg (Unix)
       if: runner.os != 'Windows'
       working-directory: ./resvg-source/crates/c-api
       run: |
         RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release
 
+    # Build Windows
     - name: Build resvg (Windows)
       if: runner.os == 'Windows'
       working-directory: ./resvg-source/crates/c-api
       shell: pwsh
       run: |
         $env:RUSTFLAGS = "-A mismatched-lifetime-syntaxes"
-        rustup target add x86_64-pc-windows-gnu
+        rustup target add x86_64-pc-windows-gnu --quiet
         cargo build --release --target x86_64-pc-windows-gnu
 
-    # Upload for Linux
+    # --- Artifact Linux ---
+    - name: Prepare artifacts (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        mkdir -p artifact
+        cp resvg-source/crates/c-api/target/release/libresvg.* artifact/ || true
+        cp resvg-source/crates/c-api/LICENSE-* artifact/
+
     - name: Upload artifacts (Linux)
       if: runner.os == 'Linux'
       uses: actions/upload-artifact@v4
       with:
         name: linux-x86_64
-        path: |
-          resvg-source/target/release/libresvg.so
-          resvg-source/target/release/libresvg.a
-          resvg-source/crates/c-api/LICENSE-APACHE
-          resvg-source/crates/c-api/LICENSE-MIT
+        path: artifact/
 
-    # Upload for macOS ARM (macos-latest)
+    # --- Artifact macOS ARM ---
+    - name: Prepare artifacts (macOS ARM)
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir -p artifact
+        cp resvg-source/crates/c-api/target/release/libresvg.* artifact/ || true
+        cp resvg-source/crates/c-api/LICENSE-* artifact/
+
     - name: Upload artifacts (macOS ARM)
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
         name: macosx-arm
-        path: |
-          resvg-source/target/release/libresvg.dylib
-          resvg-source/target/release/libresvg.a
-          resvg-source/crates/c-api/LICENSE-APACHE
-          resvg-source/crates/c-api/LICENSE-MIT
+        path: artifact/
 
-    # Upload for macOS Intel (macos-13)
+    # --- Artifact macOS Intel ---
+    - name: Prepare artifacts (macOS Intel)
+      if: matrix.os == 'macos-13'
+      run: |
+        mkdir -p artifact
+        cp resvg-source/crates/c-api/target/release/libresvg.* artifact/ || true
+        cp resvg-source/crates/c-api/LICENSE-* artifact/
+
     - name: Upload artifacts (macOS Intel)
       if: matrix.os == 'macos-13'
       uses: actions/upload-artifact@v4
       with:
         name: macosx-x86_64
-        path: |
-          resvg-source/target/release/libresvg.dylib
-          resvg-source/target/release/libresvg.a
-          resvg-source/crates/c-api/LICENSE-APACHE
-          resvg-source/crates/c-api/LICENSE-MIT
+        path: artifact/
 
-    # Upload for Windows
+    # --- Artifact Windows ---
+    - name: Prepare artifacts (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        mkdir artifact
+        Copy-Item resvg-source/crates/c-api/target/x86_64-pc-windows-gnu/release/libresvg.* artifact -ErrorAction SilentlyContinue
+        Copy-Item resvg-source/crates/c-api/LICENSE-* artifact
+
     - name: Upload artifacts (Windows)
       if: runner.os == 'Windows'
       uses: actions/upload-artifact@v4
       with:
         name: win32-x86_64
-        path: |
-          resvg-source/target/x86_64-pc-windows-gnu/release/resvg.dll
-          resvg-source/target/x86_64-pc-windows-gnu/release/libresvg.a
-          resvg-source/crates/c-api/LICENSE-APACHE
-          resvg-source/crates/c-api/LICENSE-MIT
+        path: artifact/
