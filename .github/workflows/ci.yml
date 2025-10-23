@@ -31,10 +31,6 @@ jobs:
       with:
         toolchain: stable
 
-    - name: Install Windows GNU target
-      if: runner.os == 'Windows'
-      run: rustup target add x86_64-pc-windows-gnu
-
     - name: Build resvg (Unix)
       if: runner.os != 'Windows'
       working-directory: ./resvg-source/crates/c-api
@@ -47,6 +43,7 @@ jobs:
       shell: pwsh
       run: |
         $env:RUSTFLAGS = "-A mismatched-lifetime-syntaxes"
+        rustup target add x86_64-pc-windows-gnu
         cargo build --release --target x86_64-pc-windows-gnu
 
     # Upload for Linux
@@ -56,8 +53,8 @@ jobs:
       with:
         name: linux-x86_64
         path: |
-          resvg-source/crates/c-api/target/release/libresvg.so
-          resvg-source/crates/c-api/target/release/libresvg.a
+          resvg-source/target/release/libresvg.so
+          resvg-source/target/release/libresvg.a
           resvg-source/crates/c-api/LICENSE-APACHE
           resvg-source/crates/c-api/LICENSE-MIT
 
@@ -68,8 +65,8 @@ jobs:
       with:
         name: macosx-arm
         path: |
-          resvg-source/crates/c-api/target/release/libresvg.dylib
-          resvg-source/crates/c-api/target/release/libresvg.a
+          resvg-source/target/release/libresvg.dylib
+          resvg-source/target/release/libresvg.a
           resvg-source/crates/c-api/LICENSE-APACHE
           resvg-source/crates/c-api/LICENSE-MIT
 
@@ -80,8 +77,8 @@ jobs:
       with:
         name: macosx-x86_64
         path: |
-          resvg-source/crates/c-api/target/release/libresvg.dylib
-          resvg-source/crates/c-api/target/release/libresvg.a
+          resvg-source/target/release/libresvg.dylib
+          resvg-source/target/release/libresvg.a
           resvg-source/crates/c-api/LICENSE-APACHE
           resvg-source/crates/c-api/LICENSE-MIT
 
@@ -92,7 +89,7 @@ jobs:
       with:
         name: win32-x86_64
         path: |
-          resvg-source/crates/c-api/target/x86_64-pc-windows-gnu/release/resvg.dll
-          resvg-source/crates/c-api/target/x86_64-pc-windows-gnu/release/libresvg.a
+          resvg-source/target/x86_64-pc-windows-gnu/release/resvg.dll
+          resvg-source/target/x86_64-pc-windows-gnu/release/libresvg.a
           resvg-source/crates/c-api/LICENSE-APACHE
           resvg-source/crates/c-api/LICENSE-MIT
