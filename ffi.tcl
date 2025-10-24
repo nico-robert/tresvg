@@ -336,7 +336,29 @@ if {![catch {package require cffi 2.0}]} {
             set seq [dict get $dict Result]
             set enum [cffi::enum name resvg_error $seq]
 
-            throw TRESVG_ERROR $enum
+            switch -exact $enum {
+                RESVG_ERROR_NOT_AN_UTF8_STR {
+                    set msg "String is not valid UTF-8"
+                }
+                RESVG_ERROR_FILE_OPEN_FAILED {
+                    set msg "Failed to open the provided file"
+                }
+                RESVG_ERROR_MALFORMED_GZIP {
+                    set msg "Compressed SVG must use the GZip algorithm"
+                }
+                RESVG_ERROR_ELEMENTS_LIMIT_REACHED {
+                    set msg "We do not allow SVG with more than 1_000_000 elements for security reasons"
+                }
+                RESVG_ERROR_INVALID_SIZE {
+                    set msg "SVG doesn't have a valid size"
+                }
+                RESVG_ERROR_PARSING_FAILED {
+                    set msg "Failed to parse an SVG data"
+                }
+                default {set msg "RESVG_ERROR_UNKNOWN"}
+            }
+
+            throw TRESVG_ERROR "tresvg(error): $msg"
         }
 
         proc load_resvg {} {
