@@ -52,8 +52,9 @@ jobs:
     - name: Prepare artifacts (Linux)
       if: runner.os == 'Linux'
       run: |
-        mkdir -p artifact
+        mkdir -p artifact/include
         cp resvg-source/target/release/libresvg.* artifact/ || true
+        cp resvg-source/crates/c-api/resvg.h artifact/include/ || true
         cp resvg-source/crates/c-api/LICENSE-* artifact/
 
     - name: Upload artifacts (Linux)
@@ -67,8 +68,9 @@ jobs:
     - name: Prepare artifacts (macOS ARM)
       if: matrix.os == 'macos-latest'
       run: |
-        mkdir -p artifact
+        mkdir -p artifact/include
         cp resvg-source/target/release/libresvg.* artifact/ || true
+        cp resvg-source/crates/c-api/resvg.h artifact/include/ || true
         cp resvg-source/crates/c-api/LICENSE-* artifact/
 
     - name: Upload artifacts (macOS ARM)
@@ -82,8 +84,9 @@ jobs:
     - name: Prepare artifacts (macOS Intel)
       if: matrix.os == 'macos-13'
       run: |
-        mkdir -p artifact
+        mkdir -p artifact/include
         cp resvg-source/target/release/libresvg.* artifact/ || true
+        cp resvg-source/crates/c-api/resvg.h artifact/include/ || true
         cp resvg-source/crates/c-api/LICENSE-* artifact/
 
     - name: Upload artifacts (macOS Intel)
@@ -98,9 +101,10 @@ jobs:
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
-        mkdir artifact
+        mkdir artifact/include
         Copy-Item resvg-source/target/x86_64-pc-windows-gnu/release/libresvg.a artifact -ErrorAction SilentlyContinue
         Copy-Item resvg-source/target/x86_64-pc-windows-gnu/release/resvg.dll artifact -ErrorAction SilentlyContinue
+        Copy-Item resvg-source/crates/c-api/resvg.h artifact/include -ErrorAction SilentlyContinue
         Copy-Item resvg-source/crates/c-api/LICENSE-* artifact
 
     - name: Upload artifacts (Windows)
