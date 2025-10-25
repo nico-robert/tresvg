@@ -3,7 +3,7 @@
 
 package ifneeded tresvg 0.1 [list apply {dir {
     source [file join $dir tresvg.tcl]
-    source [file join $dir ffi.tcl]
-    source [file join $dir crit.tcl]
-    source [file join $dir png.tcl]
+    source [file join $dir src ffi.tcl]
+    source [file join $dir src crit.tcl]
+    source [file join $dir src png.tcl]
 }} $dir]
