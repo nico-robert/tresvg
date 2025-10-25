@@ -7,7 +7,7 @@ if {![catch {package require cffi 2.0}]} {
         variable supportedResvgVersions [list 0.45.1 0451]
 
         proc transformIdentity {} {
-            # Get the identity transform.
+            # Gets the identity transform.
             #
             # Returns the identity transform.
             return [resvg_transform_identity]
@@ -28,7 +28,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc optionsSetResourcesDir {opt path} {
-            # Set the resources directory.
+            # Sets the resources directory.
             #
             # opt  - The options.
             # path - The resources directory.
@@ -40,7 +40,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc optionsSetDpi {opt dpi} {
-            # Set the DPI.
+            # Sets the DPI.
             #
             # opt  - The options.
             # dpi - The DPI.
@@ -52,7 +52,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc optionsSetStylesheet {opt content} {
-            # Set the stylesheet.
+            # Sets the stylesheet.
             #
             # opt  - The options.
             # content - The stylesheet.
@@ -64,7 +64,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc optionsSetFontFamily {opt family} {
-            # Set the font family.
+            # Sets the font family.
             #
             # opt  - The options.
             # family - The font family.
@@ -76,7 +76,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc optionsSetFontSize {opt size} {
-            # Set the font size.
+            # Sets the font size.
             #
             # opt  - The options.
             # size - The font size.
@@ -87,8 +87,68 @@ if {![catch {package require cffi 2.0}]} {
             return {}
         }
 
+        proc optionsSetSansSerifFamily {opt family} {
+            # Sets the sans serif family.
+            #
+            # opt  - The options.
+            # family - The sans serif family.
+            #
+            # Returns nothing.
+            resvg_options_set_sans_serif_family $opt $family
+
+            return {}
+        }
+
+        proc optionsSetCursiveFamily {opt family} {
+            # Sets the cursive font family.
+            #
+            # opt  - The options.
+            # family - The cursive family.
+            #
+            # Returns nothing.
+            resvg_options_set_cursive_family $opt $family
+
+            return {}
+        }
+
+        proc optionsSetFantasyFamily {opt family} {
+            # Sets the fantasy font family.
+            #
+            # opt  - The options.
+            # family - The fantasy family.
+            #
+            # Returns nothing.
+            resvg_options_set_fantasy_family $opt $family
+
+            return {}
+        }
+
+        proc optionsSetMonospaceFamily {opt family} {
+            # Sets the monospace font family.
+            #
+            # opt  - The options.
+            # family - The monospace family.
+            #
+            # Returns nothing.
+            resvg_options_set_monospace_family $opt $family
+
+            return {}
+        }
+
+        proc optionsSetLanguages {opt family} {
+            # Sets a comma-separated list of languages.
+            #
+            # opt       - The options.
+            # languages - list of languages separated by commas.
+            #
+            # Returns nothing.
+            resvg_options_set_languages $opt $languages
+
+            return {}
+        }
+
         proc optionsSetSerifFamily {opt family} {
-            # Set the serif family.
+            # Sets the serif family.
             #
             # opt  - The options.
             # family - The serif family.
@@ -99,8 +159,20 @@ if {![catch {package require cffi 2.0}]} {
             return {}
         }
 
+        proc optionsSetShapeRenderingMode {opt mode} {
+            # Sets the shape rendering mode.
+            #
+            # opt  - The options.
+            # mode - The shape rendering mode.
+            #
+            # Returns nothing.
+            resvg_options_set_shape_rendering_mode $opt $mode
+
+            return {}
+        }
+
         proc optionsSetTextRenderingMode {opt mode} {
-            # Set the text rendering mode.
+            # Sets the text rendering mode.
             #
             # opt  - The options.
             # mode - The text rendering mode.
@@ -112,7 +184,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc optionsSetImageRenderingMode {opt mode} {
-            # Set the image rendering mode.
+            # Sets the image rendering mode.
             #
             # opt  - The options.
             # mode - The image rendering mode.
@@ -224,7 +296,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc getNodeBBox {tree id} {
-            # Get the bounding box of the node.
+            # Gets the bounding box of the node.
             #
             # tree - The resvg tree.
             # id - The node id.
@@ -238,7 +310,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc getNodeTransform {tree id} {
-            # Get the transform of the node.
+            # Gets the transform of the node.
             #
             # tree - The resvg tree.
             # id - The node id.
@@ -252,7 +324,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc getNodeStrokeBBox {tree id} {
-            # Get the stroke bounding box of the node.
+            # Gets the stroke bounding box of the node.
             #
             # tree - The resvg tree.
             # id - The node id.
@@ -267,7 +339,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc getImageSize {tree} {
-            # Get the width and height of the image in dict format.
+            # Gets the width and height of the image in dict format.
             return [resvg_get_image_size $tree]
         }
 
@@ -292,7 +364,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc getObjectBbox {tree} {
-            # Get the bounding box of the object.
+            # Gets the bounding box of the object.
             #
             # tree - The resvg tree.
             #
@@ -305,7 +377,7 @@ if {![catch {package require cffi 2.0}]} {
         }
 
         proc getImageBbox {tree} {
-            # Get the bounding box of the image.
+            # Gets the bounding box of the image.
             #
             # tree - The resvg tree.
             #
