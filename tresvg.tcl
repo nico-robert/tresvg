@@ -3,12 +3,17 @@
 # tresvg - Tcl SVG rendering
 
 # 21-Oct-2025 : v0.1 Initial release
+# 25-Oct-2025 : v0.15 
+              # Adds a better support for critcl backend.
+              # Adds others commands for tcl-cffi backend.
+              # Adds gitHub Actions workflow to build resvg binaries.
+              # Cosmetic changes.
 
 package require Tcl 8.6-
 package require platform
 
 namespace eval tresvg {
-    variable version 0.1
+    variable version 0.15
     variable packageDirectory [file dirname [file normalize [info script]]]
 }
 
