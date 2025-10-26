@@ -181,15 +181,6 @@ if {![catch {package require critcl}]} {
                         goto cleanup;
                     }
 
-                    if (Tcl_ListObjGetElements(interp, objv[i+1], &count, &mtx) != TCL_OK) {
-                        goto cleanup;
-                    }
-
-                    if (count != 6) {
-                        Tcl_SetResult(interp, "-mtx must have 6 values", TCL_STATIC);
-                        goto cleanup;
-                    }
-
                     double temp[6];
                     for (Tcl_Size j = 0; j < 6; j++) {
                         if (Tcl_GetDoubleFromObj(interp, mtx[j], &temp[j]) != TCL_OK) {
