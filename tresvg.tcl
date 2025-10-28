@@ -13,8 +13,10 @@ package require Tcl 8.6-
 package require platform
 
 namespace eval tresvg {
-    variable version 0.15
+    variable version          0.15
     variable packageDirectory [file dirname [file normalize [info script]]]
+    variable platform         [::platform::generic]
+    variable libDirectory     [file join $packageDirectory $platform]
 }
 
 package provide tresvg $::tresvg::version
