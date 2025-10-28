@@ -1,33 +1,32 @@
 # Copyright (c) 2025 Nicolas ROBERT.
 # Distributed under MIT license. Please see LICENSE for details.
 
-if {![catch {package require critcl}]} {
+namespace eval tresvg {}
 
-    if {[catch {package present Tk}]} {return}
-
-    namespace eval tresvg {}
+if {![catch {package require critcl}] && ![catch {package present Tk}]} {
 
     # Tcl version
-    set tcl_version [info tclversion]
-    if {($tcl_version eq "8.6") &&
-        ([package vcompare [package present critcl] "3.3"] < 0)
+    if {[package vsatisfies [package provide Tcl] 8.6] &&
+        ([package vcompare [package provide critcl] "3.3"] < 0)
     } {
         critcl::tcl 8.6
     }
 
-    if {([package vcompare $tcl_version "9.0"] >= 0) &&
-        ([package vcompare [package present critcl] "3.3"] < 0)
+    if {([package vsatisfies [package provide Tcl] 9.0-]) &&
+        ([package vcompare [package provide critcl] "3.3"] < 0)
     } {
         error "'critcl' version 3.3 or higher is required with Tcl9."
     }
 
-    set platform [platform::generic]
+    if {[package vsatisfies [package provide Tcl] 9.0-]} {
+        critcl::tcl 9
+    }
 
     critcl::tk
-    critcl::config I [list [file join $::tresvg::packageDirectory $platform include]]
-    critcl::clibraries [file join $::tresvg::packageDirectory $platform libresvg.a]
+    critcl::config I [list [file join $::tresvg::libDirectory include]]
+    critcl::clibraries [file join $::tresvg::libDirectory libresvg.a]
 
-    if {$platform eq "win32-x86_64"} {
+    if {$::tresvg::platform eq "win32-x86_64"} {
         critcl::clibraries -lws2_32 -luserenv -ladvapi32 -lbcrypt -lntdll
     }
 
@@ -99,13 +98,13 @@ if {![catch {package require critcl}]} {
 
     critcl::ccommand tresvg::toTkImg {cd interp objc objv} {
         /**
-        * @brief Convert a rendered SVG image to a Tk Photo image.
+        * Convert a rendered SVG image to a Tk Photo image.
         *
-        * @param interp The Tcl interpreter.
-        * @param objc The number of arguments passed to the command.
-        * @param objv The array of Tcl_Obj which are the arguments passed to the command.
+        * interp - The Tcl interpreter.
+        * objc   - The number of arguments passed to the command.
+        * objv   - The array of Tcl_Obj which are the arguments passed to the command.
         *
-        * @return TCL_OK if the command was successful, TCL_ERROR otherwise.
+        * Returns : TCL_OK if the command was successful, TCL_ERROR otherwise.
         */
         if (objc < 3) {
             Tcl_WrongNumArgs(interp, 1, objv, "svgfile photo ?args?");
@@ -135,7 +134,7 @@ if {![catch {package require critcl}]} {
         int target_width = 0;
         int target_height = 0;
         const char *mode_scale = NULL;
-        
+
         // Parse the arguments.
         if (objc > 3) {
             for (int i = 3; i < objc; i += 2) {
@@ -293,7 +292,7 @@ if {![catch {package require critcl}]} {
                     }
 
                     resvg_options_set_shape_rendering_mode(opt, shapeRenderingMode(mode));
-                    
+
                 /**
                  * Sets the width of the SVG image.
                  * The width is the width of the SVG image in pixels.
@@ -303,12 +302,12 @@ if {![catch {package require critcl}]} {
                     if (Tcl_GetIntFromObj(interp, objv[i+1], &target_width) != TCL_OK) {
                         goto cleanup;
                     }
-                    
+
                     if (target_width <= 0) {
                         Tcl_SetResult(interp, "iresvg(error): -width must be > 0", TCL_STATIC);
                         goto cleanup;
                     }
-                    
+
                     hasTargetWidth = 1;
 
                 /**
@@ -320,14 +319,14 @@ if {![catch {package require critcl}]} {
                     if (Tcl_GetIntFromObj(interp, objv[i+1], &target_height) != TCL_OK) {
                         goto cleanup;
                     }
-                    
+
                     if (target_height <= 0) {
                         Tcl_SetResult(interp, "iresvg(error): -height must be > 0", TCL_STATIC);
                         goto cleanup;
                     }
 
                     hasTargetHeight = 1;
-                    
+
                 /**
                  * Sets the mode scale.
                  * The mode scale is used to determine how to scale the SVG image.
@@ -429,14 +428,14 @@ if {![catch {package require critcl}]} {
         }
 
         if (hasMtx && hasScale) {
-            Tcl_SetResult(interp, 
-            "tresvg(error): Cannot use both '-mtx' and '-scale'.", TCL_STATIC); 
+            Tcl_SetResult(interp,
+            "tresvg(error): Cannot use both '-mtx' and '-scale'.", TCL_STATIC);
             goto cleanup;
         }
-        
+
         if (hasScale && (hasTargetHeight || hasTargetWidth)) {
-            Tcl_SetResult(interp, 
-            "tresvg(error): Cannot use both '-scale' and '-height or -width'.", TCL_STATIC); 
+            Tcl_SetResult(interp,
+            "tresvg(error): Cannot use both '-scale' and '-height or -width'.", TCL_STATIC);
             goto cleanup;
         }
 
@@ -466,12 +465,12 @@ if {![catch {package require critcl}]} {
             Tcl_SetResult(interp, "tresvg(error): SVG has invalid dimensions.", TCL_STATIC);
             goto cleanup;
         }
-        
+
         if (hasTargetHeight || hasTargetWidth) {
 
             if (!hasTargetHeight) {target_height = height;}
             if (!hasTargetWidth) {target_width = width;}
-            
+
             double scale_x = (double)target_width / size.width;
             double scale_y = (double)target_height / size.height;
 
@@ -482,20 +481,20 @@ if {![catch {package require critcl}]} {
 
                     float offset_x = (target_width - (width * scale)) / 2.0f;
                     float offset_y = (target_height - (height * scale)) / 2.0f;
-        
+
                     tr.e = offset_x;
                     tr.f = offset_y;
                 } else {
                     Tcl_SetObjResult(interp,
                         Tcl_ObjPrintf(
-                            "tresvg(error): -modeScale '%s' not supported. Use 'fit'.", 
+                            "tresvg(error): -modeScale '%s' not supported. Use 'fit'.",
                             mode_scale
                         )
                     );
                     goto cleanup;
                 }
             }
-            
+
             tr.a = (float)scale_x;
             tr.d = (float)scale_y;
             width = target_width;
@@ -545,7 +544,7 @@ if {![catch {package require critcl}]} {
                 data[i + 2] = (uint8_t)(((unsigned int)data[i + 2] * multiplier + 127) / 255);
             }
         }
-        
+
         Tk_PhotoImageBlock block;
 
         block.pixelPtr   = data;
