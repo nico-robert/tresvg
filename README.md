@@ -192,3 +192,7 @@ To [RazrFalcon](https://github.com/RazrFalcon), the author of **resvg**, who hel
     - Adds others commands for **tcl-cffi** backend.
     - Adds gitHub Actions workflow to build **resvg** binaries.
     - Cosmetic changes.
+*  **29-Oct-2025** : 0.17
+    - Uses `critcl` if present to replace the `tresvg::encodePNG` command for **tcl-cffi** backend,   
+      by using `stbi_write_png_to_mem` function from `stb_image_write.h` header file if also exists.
+    - Cosmetic changes.
