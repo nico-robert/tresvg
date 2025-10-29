@@ -304,7 +304,7 @@ if {![catch {package require critcl}] && ![catch {package present Tk}]} {
                     }
 
                     if (target_width <= 0) {
-                        Tcl_SetResult(interp, "iresvg(error): -width must be > 0", TCL_STATIC);
+                        Tcl_SetResult(interp, "tresvg(error): -width must be > 0", TCL_STATIC);
                         goto cleanup;
                     }
 
@@ -321,7 +321,7 @@ if {![catch {package require critcl}] && ![catch {package present Tk}]} {
                     }
 
                     if (target_height <= 0) {
-                        Tcl_SetResult(interp, "iresvg(error): -height must be > 0", TCL_STATIC);
+                        Tcl_SetResult(interp, "tresvg(error): -height must be > 0", TCL_STATIC);
                         goto cleanup;
                     }
 
@@ -377,7 +377,7 @@ if {![catch {package require critcl}] && ![catch {package present Tk}]} {
                         goto cleanup;
                     }
                     if (scale <= 0) {
-                        Tcl_SetResult(interp, "iresvg(error): -scale must be > 0", TCL_STATIC);
+                        Tcl_SetResult(interp, "tresvg(error): -scale must be > 0", TCL_STATIC);
                         goto cleanup;
                     }
 
@@ -392,7 +392,7 @@ if {![catch {package require critcl}] && ![catch {package present Tk}]} {
 
                     if (err != RESVG_OK) {
                         Tcl_SetObjResult(interp,
-                            Tcl_ObjPrintf("iresvg(error): %s", resvg_error_to_string(err))
+                            Tcl_ObjPrintf("tresvg(error): %s", resvg_error_to_string(err))
                         );
                         goto cleanup;
                     }
