@@ -39,14 +39,13 @@ if {![catch {package require critcl}] && ![catch {package present Tk}]} {
         #include <string.h>
         #include <math.h>
 
-        #if TCL_MAJOR_VERSION == 8
-            #ifndef TCL_SIZE_MAX
-                typedef int Tcl_Size;
-                # define Tcl_GetSizeIntFromObj Tcl_GetIntFromObj
-                # define Tcl_NewSizeIntObj Tcl_NewIntObj
-                # define TCL_SIZE_MAX      INT_MAX
-                # define TCL_SIZE_MODIFIER ""
-            #endif
+        #ifndef TCL_SIZE_MAX
+            #include <limits.h>
+            typedef int Tcl_Size;
+            # define Tcl_GetSizeIntFromObj Tcl_GetIntFromObj
+            # define Tcl_NewSizeIntObj Tcl_NewIntObj
+            # define TCL_SIZE_MAX      INT_MAX
+            # define TCL_SIZE_MODIFIER ""
         #endif
 
         const char* resvg_error_to_string(resvg_error err) {
@@ -519,7 +518,7 @@ if {![catch {package require critcl}] && ![catch {package present Tk}]} {
 
         size_t len = (size_t)width * (size_t)height * 4;
 
-        if (len > INT_MAX) {
+        if (len > TCL_SIZE_MAX) {
             Tcl_SetResult(interp, "tresvg(error): Image too large.", TCL_STATIC);
             goto cleanup;
         }

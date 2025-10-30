@@ -185,14 +185,13 @@ if {
         #include <stdlib.h>
         #include <math.h>
 
-        #if TCL_MAJOR_VERSION == 8
-            #ifndef TCL_SIZE_MAX
-                typedef int Tcl_Size;
-                # define Tcl_GetSizeIntFromObj Tcl_GetIntFromObj
-                # define Tcl_NewSizeIntObj Tcl_NewIntObj
-                # define TCL_SIZE_MAX      INT_MAX
-                # define TCL_SIZE_MODIFIER ""
-            #endif
+        #ifndef TCL_SIZE_MAX
+            #include <limits.h>
+            typedef int Tcl_Size;
+            # define Tcl_GetSizeIntFromObj Tcl_GetIntFromObj
+            # define Tcl_NewSizeIntObj Tcl_NewIntObj
+            # define TCL_SIZE_MAX      INT_MAX
+            # define TCL_SIZE_MODIFIER ""
         #endif
 
     }
@@ -220,11 +219,18 @@ if {
             return TCL_ERROR;
         }
 
+        size_t img_len = (size_t)width * (size_t)height * 4;
+
+        if (img_len > TCL_SIZE_MAX) {
+            Tcl_SetResult(interp, "tresvg(error): Image too large.", TCL_STATIC);
+            return TCL_ERROR;
+        }
+
         if (Tcl_ListObjGetElements(interp, objv[1], &count, &data) != TCL_OK) {
             return TCL_ERROR;
         }
 
-        Tcl_Size expected_count = (Tcl_Size)width * height * 4;
+        Tcl_Size expected_count = (Tcl_Size)width * (Tcl_Size)height * 4;
         if (count != expected_count) {
             Tcl_SetObjResult(interp, 
                 Tcl_ObjPrintf(
