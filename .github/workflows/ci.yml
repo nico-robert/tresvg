@@ -26,6 +26,43 @@ jobs:
       run: |
         git clone --depth 1 --branch ${{ env.RESVG_VERSION }} https://github.com/linebender/resvg.git resvg-source
 
+    # Copy extended files.
+    - name: Copy extended files
+      shell: bash
+      run: |
+        cp resvg-extended/extended.rs resvg-source/crates/c-api/
+        cp resvg-extended/extended.h resvg-source/crates/c-api/
+    
+    # Modify lib.rs to add extended module.
+    - name: Add extended module to lib.rs (Unix)
+      if: runner.os != 'Windows'
+      working-directory: ./resvg-source/crates/c-api
+      run: |
+        if ! grep -q "mod extended;" lib.rs; then
+          echo "" >> lib.rs
+          echo "/// Extended resvg functions." >> lib.rs
+          echo "///" >> lib.rs
+          echo "/// This module provides functions not available in the original **resvg** crate." >> lib.rs
+          echo "///" >> lib.rs
+          echo "/// It is intended to be used as a drop-in replacement, and provide additional features." >> lib.rs
+          echo "mod extended;" >> lib.rs
+        fi
+
+    - name: Add extended module to lib.rs (Windows)
+      if: runner.os == 'Windows'
+      working-directory: ./resvg-source/crates/c-api
+      shell: pwsh
+      run: |
+        $content = Get-Content lib.rs -Raw
+        if ($content -notmatch "mod extended;") {
+          Add-Content lib.rs "`n/// Extended resvg functions."
+          Add-Content lib.rs "///"
+          Add-Content lib.rs "/// This module provides functions not available in the original **resvg** crate."
+          Add-Content lib.rs "///"
+          Add-Content lib.rs "/// It is intended to be used as a drop-in replacement, and provide additional features."
+          Add-Content lib.rs "mod extended;"
+          }
+
     - name: Install Rust
       uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
