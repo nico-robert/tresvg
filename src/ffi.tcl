@@ -399,6 +399,27 @@ if {![catch {package require cffi 2.0}]} {
             return [resvg_node_exists $tree $id]
         }
 
+        proc getXML {tree} {
+            # Gets simplified tree XML.
+            #
+            # tree - The resvg tree.
+            #
+            # Returns a simplified XML.
+            resvg_tree_to_xml $tree outxml
+
+            set xml [cffi::memory tostring! $outxml]
+            resvg_free_string $outxml
+
+            return $xml
+        }
+
+        proc libVersion {} {
+            # Gets resvg version
+            #
+            # Returns the version.
+            return [resvg_version_string]
+        }
+
         proc error {dict} {
             # Throw an error based on the resvg error code.
             # 
@@ -525,6 +546,13 @@ if {![catch {package require cffi 2.0}]} {
     tresvg::load_resvg
 
     cffi::alias load C
+
+    RESVG function resvg_version_string string {}
+
+    if {[package vcompare [tresvg::libVersion] $::tresvg::resvgMinVersion] < 0} {
+        error "resvg version '[tresvg::libVersion]' is\
+            unsupported. Need '$::tresvg::resvgMinVersion]' or later."
+    }
 
     # Structure:
     # resvg_transform struct:
@@ -788,6 +816,16 @@ if {![catch {package require cffi 2.0}]} {
             pixmap    {uchar[N] out}
             N         uint32_t
         }
+
+        resvg_tree_to_xml RESVG_RESULT {
+            tree      pointer.resvg_render_tree
+            xml       {pointer.xml out}
+        }
+
+        resvg_free_string void {
+            xml pointer.xml
+        }
+
     }
 
 }
