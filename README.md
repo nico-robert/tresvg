@@ -1,10 +1,10 @@
 # tresvg - Tcl SVG rendering
 
-Tcl wrapper around [resvg](https://github.com/linebender/resvg)
+Tcl wrapper around **resvg**
 
-From **resvg** repository :  
 ***resvg** is an [SVG](https://en.wikipedia.org/wiki/Scalable_Vector_Graphics) rendering library.* *It can be used as a Rust library, as a C library, and as a CLI application to render static SVG files.*  
-*The core idea is to make a fast, small, portable SVG library with the goal to support the whole SVG spec.*
+*The core idea is to make a fast, small, portable SVG library with the goal to support the whole SVG spec.*  
+> *Source: [resvg](https://github.com/linebender/resvg)*
 
 ## Compatibility :
 - [Tcl](https://www.tcl.tk/) 8.6 or higher
@@ -48,6 +48,10 @@ set pixmap [tresvg::render $tree $transform $width $height]
 # Save to PNG
 tresvg::toPNG $pixmap $width $height "/Users/nico/temp/output.png"
 
+# Extended procedures (not a part of resvg C-API)
+set xml [tresvg::getXML $tree] ; # Gets simplified XML
+set version [tresvg::libVersion]
+
 # Cleanup
 tresvg::optionsDestroy $opt
 tresvg::treeDestroy $tree
@@ -76,7 +80,7 @@ pack .l
 
 ## Commands :
 
-| Tcl/Tk commands | help
+| Tcl/Tk commands | args
 | ------          | ------
 tresvg::toPNG     | pixmap width height filename
 tresvg::toBase64  | pixmap width height     
@@ -87,48 +91,50 @@ tresvg::toTkImg   | 'svgFile or svgData' tkImage ?args?`
 ### Commands listing :
 <div style="overflow-x: auto;">
 
-| resvg-c                                | tcl-cffi                                         | critcl args                               | help
-| ---------------------------------------| -------------------------------------------      | ---------------------------------         | ----
-| resvg_transform_identity               | <code>tresvg::transformIdentity</code>           | <code>default matrix</code>               | -
-| resvg_init_log                         | <code>tresvg::initLog</code>                     | <code>-initLog "bool_value"</code>        | Use it if you want to see any warnings.
-| resvg_options_create                   | <code>tresvg::optionsCreate</code>               | -                                         | Creates a new #resvg_options object.
-| resvg_options_destroy                  | <code>tresvg::optionsDestroy</code>              | -                                         | Destroys a #resvg_options object.
-| resvg_tree_destroy                     | <code>tresvg::treeDestroy</code>                 | -                                         | Destroys a #resvg_tree object.
-| resvg_options_set_resources_dir        | <code>tresvg::optionsSetResourcesDir</code>      | <code>-resourcesDir $path</code>          | Sets the path to the resources directory.
-| resvg_options_set_dpi                  | <code>tresvg::optionsSetDpi</code>               | <code>-dpi $dpi</code>                    | Sets the DPI of the rendering.
-| resvg_options_set_stylesheet           | <code>tresvg::optionsSetStylesheet</code>        | <code>-styleSheet $css</code>             | Sets the CSS styles used by the SVG rendering.
-| resvg_options_set_font_family          | <code>tresvg::optionsSetFontFamily</code>        | <code>-fontFamily $family</code>          | Sets the font family.
-| resvg_options_set_font_size            | <code>tresvg::optionsSetFontSize</code>          | <code>-fontSize $size</code>              | Sets the font size.
-| resvg_options_set_serif_family         | <code>tresvg::optionsSetSerifFamily</code>       | <code>-serifFontFamily $family</code>     | Sets the serif font family.
-| resvg_options_set_sans_serif_family    | <code>tresvg::optionsSetSansSerifFamily</code>   | <code>-sansSerifFontFamily $family</code> | Sets the sans-serif font family.
-| resvg_options_set_cursive_family       | <code>tresvg::optionsSetCursiveFamily</code>     | <code>-cursiveFontFamily $family</code>   | Sets the cursive font family.
-| resvg_options_set_fantasy_family       | <code>tresvg::optionsSetFantasyFamily</code>     | <code>-fantasyFontFamily $family</code>   | Sets the fantasy font family.
-| resvg_options_set_monospace_family     | <code>tresvg::optionsSetMonospaceFamily</code>   | <code>-monospaceFontFamily $family</code> | Sets the monospace font family.
-| resvg_options_set_languages            | <code>tresvg::optionsSetLanguages</code>         | <code>-languages $languages</code>        | Sets the languages.
-| resvg_options_set_shape_rendering_mode | <code>tresvg::optionsSetShapeRenderingMode</code>| <code>-shapeRenderingMode $mode</code>    | Sets the shape rendering mode.
-| resvg_options_set_text_rendering_mode  | <code>tresvg::optionsSetTextRenderingMode</code> | <code>-textRenderingMode $mode</code>     | Sets the text rendering mode.
-| resvg_options_set_image_rendering_mode | <code>tresvg::optionsSetImageRenderingMode</code>| <code>-imageRenderingMode $mode</code>    | Sets the image rendering mode.
-| resvg_options_load_font_data           | <code>tresvg::optionsLoadFontData</code>         | ❌ not implemented yet                     | -
-| resvg_options_load_font_file           | <code>tresvg::optionsLoadFontFile</code>         | <code>-loadFontFile $fontfile</code>      | Loads a font file.
-| resvg_options_load_system_fonts        | <code>tresvg::optionsLoadSystemFonts</code>      | <code>-loadSystemFonts "bool_value"</code>| Loads the system fonts.
-| resvg_parse_tree_from_file             | <code>tresvg::parseTreeFromFile</code>           | -                                         | Parses a SVG file.
-| resvg_parse_tree_from_data             | <code>tresvg::parseTreeFromData</code>           | <code>tresvg::toTkImg $svgString</code>   | Parses a SVG data.
-| resvg_is_image_empty                   | <code>tresvg::isImageEmpty</code>                | ❌ not implemented yet                     | Gets if an image is empty.
-| resvg_get_image_size                   | <code>tresvg::getImageSize</code>                | ❌ not implemented yet                     | Gets the size of an image.
-| resvg_get_object_bbox                  | <code>tresvg::getObjectBbox</code>               | ❌ not implemented yet                     | Gets the bounding box of an object.
-| resvg_get_image_bbox                   | <code>tresvg::getImageBbox</code>                | ❌ not implemented yet                     | Gets the bounding box of an image.
-| resvg_node_exists                      | <code>tresvg::nodeExists</code>                  | ❌ not implemented yet                     | Gets if a node exists.
-| resvg_get_node_transform               | <code>tresvg::getNodeTransform</code>            | ❌ not implemented yet                     | Gets the transform of a node.
-| resvg_get_node_bbox                    | <code>tresvg::getNodeBBox</code>                 | ❌ not implemented yet                     | Gets the bounding box of a node.
-| resvg_get_node_stroke_bbox             | <code>tresvg::getNodeStrokeBBox</code>           | ❌ not implemented yet                     | Gets the stroke bounding box of a node.
-| resvg_tree_destroy                     | <code>tresvg::treeDestroy</code>                 | -                                         | Destroys a #resvg_tree object.
-| resvg_render                           | <code>tresvg::render</code>                      | <code>tresvg::toTkImg $svg</code>         | Renders a SVG file or data to Tk image photo.
-| resvg_render_node                      | <code>tresvg::renderNode</code>                  | ❌ not implemented yet                     | Renders a node.
-| <code>struct</code> resvg_transform    | <code>[list a b c d e f]</code>                  | <code>-mtx {a b c d e f}</code>           | Sets the transform matrix.
-| -                                      | -                                                | <code>-width $width</code>                | Sets the width of the image.
-| -                                      | -                                                | <code>-height $height</code>              | Sets the height of the image.
-| -                                      | -                                                | <code>-scale $scale</code>                | Sets the scale of the image.
-| -                                      | -                                                | <code>-modeScale "fit"</code>             | Sets the mode scale of the image.
+| resvg-c                                | tcl-cffi                                         | critcl args                      | help
+| ---------------------------------------| -------------------------------------------      | ---------------------------------| ----
+| resvg_transform_identity               | <code>tresvg::transformIdentity</code>           | default matrix                   | -
+| resvg_init_log                         | <code>tresvg::initLog</code>                     | -initLog "bool_value"            | Use it if you want to see any warnings.
+| resvg_options_create                   | <code>tresvg::optionsCreate</code>               | -                                | Creates a new #resvg_options object.
+| resvg_options_destroy                  | <code>tresvg::optionsDestroy</code>              | -                                | Destroys a #resvg_options object.
+| resvg_tree_destroy                     | <code>tresvg::treeDestroy</code>                 | -                                | Destroys a #resvg_tree object.
+| resvg_options_set_resources_dir        | <code>tresvg::optionsSetResourcesDir</code>      | -resourcesDir $path              | Sets the path to the resources directory.
+| resvg_options_set_dpi                  | <code>tresvg::optionsSetDpi</code>               | -dpi $dpi                        | Sets the DPI of the rendering.
+| resvg_options_set_stylesheet           | <code>tresvg::optionsSetStylesheet</code>        | -styleSheet $css                 | Sets the CSS styles used by the SVG rendering.
+| resvg_options_set_font_family          | <code>tresvg::optionsSetFontFamily</code>        | -fontFamily $family              | Sets the font family.
+| resvg_options_set_font_size            | <code>tresvg::optionsSetFontSize</code>          | -fontSize $size                  | Sets the font size.
+| resvg_options_set_serif_family         | <code>tresvg::optionsSetSerifFamily</code>       | -serifFontFamily $family         | Sets the serif font family.
+| resvg_options_set_sans_serif_family    | <code>tresvg::optionsSetSansSerifFamily</code>   | -sansSerifFontFamily $family     | Sets the sans-serif font family.
+| resvg_options_set_cursive_family       | <code>tresvg::optionsSetCursiveFamily</code>     | -cursiveFontFamily $family       | Sets the cursive font family.
+| resvg_options_set_fantasy_family       | <code>tresvg::optionsSetFantasyFamily</code>     | -fantasyFontFamily $family       | Sets the fantasy font family.
+| resvg_options_set_monospace_family     | <code>tresvg::optionsSetMonospaceFamily</code>   | -monospaceFontFamily $family     | Sets the monospace font family.
+| resvg_options_set_languages            | <code>tresvg::optionsSetLanguages</code>         | -languages $languages            | Sets the languages.
+| resvg_options_set_shape_rendering_mode | <code>tresvg::optionsSetShapeRenderingMode</code>| -shapeRenderingMode $mode        | Sets the shape rendering mode.
+| resvg_options_set_text_rendering_mode  | <code>tresvg::optionsSetTextRenderingMode</code> | -textRenderingMode $mode         | Sets the text rendering mode.
+| resvg_options_set_image_rendering_mode | <code>tresvg::optionsSetImageRenderingMode</code>| -imageRenderingMode $mode        | Sets the image rendering mode.
+| resvg_options_load_font_data           | <code>tresvg::optionsLoadFontData</code>         | ❌ not implemented yet            | -
+| resvg_options_load_font_file           | <code>tresvg::optionsLoadFontFile</code>         | -loadFontFile $fontfile          | Loads a font file.
+| resvg_options_load_system_fonts        | <code>tresvg::optionsLoadSystemFonts</code>      | -loadSystemFonts "bool_value"    | Loads the system fonts.
+| resvg_parse_tree_from_file             | <code>tresvg::parseTreeFromFile</code>           | -                                | Parses a SVG file.
+| resvg_parse_tree_from_data             | <code>tresvg::parseTreeFromData</code>           | tresvg::toTkImg $svgString       | Parses a SVG data.
+| resvg_is_image_empty                   | <code>tresvg::isImageEmpty</code>                | ❌ not implemented yet            | Gets if an image is empty.
+| resvg_get_image_size                   | <code>tresvg::getImageSize</code>                | ❌ not implemented yet            | Gets the size of an image.
+| resvg_get_object_bbox                  | <code>tresvg::getObjectBbox</code>               | ❌ not implemented yet            | Gets the bounding box of an object.
+| resvg_get_image_bbox                   | <code>tresvg::getImageBbox</code>                | ❌ not implemented yet            | Gets the bounding box of an image.
+| resvg_node_exists                      | <code>tresvg::nodeExists</code>                  | ❌ not implemented yet            | Gets if a node exists.
+| resvg_get_node_transform               | <code>tresvg::getNodeTransform</code>            | ❌ not implemented yet            | Gets the transform of a node.
+| resvg_get_node_bbox                    | <code>tresvg::getNodeBBox</code>                 | ❌ not implemented yet            | Gets the bounding box of a node.
+| resvg_get_node_stroke_bbox             | <code>tresvg::getNodeStrokeBBox</code>           | ❌ not implemented yet            | Gets the stroke bounding box of a node.
+| resvg_tree_destroy                     | <code>tresvg::treeDestroy</code>                 | -                                | Destroys a #resvg_tree object.
+| resvg_render                           | <code>tresvg::render</code>                      | <code>tresvg::toTkImg $svg</code>| Renders a SVG file or data to Tk image photo.
+| resvg_tree_to_xml (resvg extended)     | <code>tresvg::getXML</code>                      |-                                 | Gets simplified XML.
+| resvg_version_string (resvg extended)  | <code>tresvg::liVersion</code>                   |-                                 | Gets resvg version.
+| resvg_render_node                      | <code>tresvg::renderNode</code>                  | ❌ not implemented yet            | Renders a node.
+| <code>struct</code> resvg_transform    | <code>[list a b c d e f]</code>                  | -mtx {a b c d e f}               | Sets the transform matrix.
+| -                                      | -                                                | -width $width                    | Sets the width of the image.
+| -                                      | -                                                | -height $height                  | Sets the height of the image.
+| -                                      | -                                                | -scale $scale                    | Sets the scale of the image.
+| -                                      | -                                                | -modeScale "fit"                 | Sets the mode scale of the image.
 
 </div>
 
@@ -184,7 +190,7 @@ You can enable the workflow in your own fork to generate them automatically.
 ## Acknowledgments :
 To [RazrFalcon](https://github.com/RazrFalcon), the author of **resvg**, who helped me understand his library a few years ago.
 
-## Release :
+## Changes :
 *  **21-Oct-2025** : 0.1
     - Initial release.
 *  **26-Oct-2025** : 0.15
@@ -196,3 +202,9 @@ To [RazrFalcon](https://github.com/RazrFalcon), the author of **resvg**, who hel
     - Uses `critcl` if present to replace the `tresvg::encodePNG` command for **tcl-cffi** backend,   
       by using `stbi_write_png_to_mem` function from `stb_image_write.h` header file if also exists.
     - Cosmetic changes.
+*  **05-Nov-2025** : 0.19
+    - Extends resvg C-API with 2 new commands `resvg_tree_to_xml` and `resvg_version_string`.
+    - Includes `<limits.h>` header in `crit.tcl` file +
+      fixes some problems with `critcl` and `Tk9`, thanks @andreas-kupries.
+    - Adds gitHub Actions workflow to extend resvg C-API.
+    - Adds a release with binaries for **macOS** (ARM + Intel), **Windows** and **Linux**.
