@@ -260,7 +260,8 @@ if {![catch {package require cffi 2.0}]} {
             # opt  - The options.
             #
             # Returns the resvg tree.
-            return [resvg_parse_tree_from_data $data $opt]
+            resvg_parse_tree_from_data $data [string length $data] $opt tree
+            return $tree
         }
 
         proc render {tree transform width height} {
@@ -749,6 +750,13 @@ if {![catch {package require cffi 2.0}]} {
 
         resvg_parse_tree_from_file RESVG_RESULT {
             path string
+            opt  pointer.resvg_options
+            tree {pointer.resvg_render_tree out}
+        }
+
+        resvg_parse_tree_from_data RESVG_RESULT {
+            data string
+            len size_t
             opt  pointer.resvg_options
             tree {pointer.resvg_render_tree out}
         }
