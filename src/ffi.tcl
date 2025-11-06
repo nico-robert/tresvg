@@ -526,7 +526,7 @@ if {![catch {package require cffi 2.0}]} {
             # Specific case for macOS where the shared library is installed
             # under '/usr/local/lib'.
             if {$::tcl_platform(platform) eq "unix"} {
-                set searchPaths [linsert $searchPaths 0 "/usr/local/lib"]
+                set searchPaths [linsert $searchPaths end "/usr/local/lib"]
             }
             # Now do the actual search over search path for each possible name
             foreach searchPath $searchPaths {
