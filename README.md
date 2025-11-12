@@ -175,14 +175,14 @@ This will produce dynamic libraries in `/target/x86_64-pc-windows-gnu/release`
 
 ### Option 2 — Use prebuilt binaries (no Rust required)
 
-If you prefer not to install or compile Rust yourself, you can simply **use this GitHub repository (fork it)**.  
-It includes a **GitHub Actions workflow** that automatically builds and uploads binaries for all supported platforms whenever changes are pushed.
-
-You can enable the workflow in your own fork to generate them automatically.
+If you prefer not to install or compile Rust yourself, you can simply **use this GitHub repository**.   
+You have two alternatives:   
+- On the **Actions** tab, then on the workflow of your choice, you can automatically download binaries for all supported platforms.
+- If you decide to fork it, you can enable the workflow in your own fork to generate them automatically.
 
 > [!TIP]    
 > Make sure to match your platform architecture (e.g. `x86_64` vs `arm64`).   
-> The header file `resvg.h` is included in each build under the `your_platform/include/` directory.
+> The header file `resvg.h` is included in each build under the `your_platform/include/` directory + `resvg` licenses in each folder.
 
 ## License : 
 [MIT](LICENSE).
