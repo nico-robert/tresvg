@@ -548,13 +548,6 @@ if {![catch {package require cffi 2.0}]} {
 
     cffi::alias load C
 
-    RESVG function resvg_version_string string {}
-
-    if {[package vcompare [tresvg::libVersion] $::tresvg::resvgMinVersion] < 0} {
-        error "resvg version '[tresvg::libVersion]' is\
-            unsupported. Need '$::tresvg::resvgMinVersion]' or later."
-    }
-
     # Structure:
     # resvg_transform struct:
     #   a: scale x
@@ -653,6 +646,30 @@ if {![catch {package require cffi 2.0}]} {
     cffi::alias define RESVG_TEXT_RENDERING  {int {enum resvg_text_rendering}}
     cffi::alias define RESVG_IMAGE_RENDERING {int {enum resvg_image_rendering}}
     cffi::alias define RESVG_RESULT          {int32_t zero {onerror tresvg::error}}
+
+    # These functions are not part of the resvg API.
+    # They are only available with resvg-extended.
+    # Use the ‘-ignoremissing’ parameter for cffi to avoid generating
+    # errors if a function cannot be found.
+    RESVG functions {
+        resvg_version_string string {}
+
+        resvg_tree_to_xml RESVG_RESULT {
+            tree      pointer.resvg_render_tree
+            xml       {pointer.xml out}
+        }
+
+        resvg_free_string void {
+            xml pointer.xml
+        }
+    } -ignoremissing
+
+    if {[info commands "resvg_version_string"] ne ""} {
+        if {[package vcompare [tresvg::libVersion] $::tresvg::resvgMinVersion] < 0} {
+            error "resvg version '[tresvg::libVersion]' is\
+                unsupported. Need '$::tresvg::resvgMinVersion]' or later."
+        }
+    }
 
     # Functions:
     RESVG functions {
@@ -824,16 +841,5 @@ if {![catch {package require cffi 2.0}]} {
             pixmap    {uchar[N] out}
             N         uint32_t
         }
-
-        resvg_tree_to_xml RESVG_RESULT {
-            tree      pointer.resvg_render_tree
-            xml       {pointer.xml out}
-        }
-
-        resvg_free_string void {
-            xml pointer.xml
-        }
-
     }
-
 }
