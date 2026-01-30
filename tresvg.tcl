@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Nicolas ROBERT.
+# Copyright (c) 2025-2026 Nicolas ROBERT.
 # Distributed under MIT license. Please see LICENSE for details.
 # tresvg - Tcl SVG rendering
 
@@ -18,12 +18,18 @@
               # fixes some problems with `critcl` and `Tk9`, thanks @andreas-kupries.
               # Adds gitHub Actions workflow to extend resvg C-API.
               # Adds a release with binaries for macOS (ARM + Intel), Windows and Linux.
+# 30-Jan-2026 : v0.21
+              # Some functions are not part of the resvg API, use `-ignoremissing` parameter to avoid generating errors.
+              # Gives priority to platform files in the lib resvg search for `unix` platform.
+              # Fix `resvg_parse_tree_from_data` procedure was not defined.
+              # Bump resvg version to `0.46.0`.
+
 
 package require Tcl 8.6-
 package require platform
 
 namespace eval tresvg {
-    variable version          0.19
+    variable version          0.21
     variable packageDirectory [file dirname [file normalize [info script]]]
     variable platform         [::platform::generic]
     variable libDirectory     [file join $packageDirectory $platform]

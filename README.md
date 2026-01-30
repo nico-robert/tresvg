@@ -46,7 +46,7 @@ set height [expr {int([dict get $size height])}]
 set pixmap [tresvg::render $tree $transform $width $height]
 
 # Save to PNG
-tresvg::toPNG $pixmap $width $height "/Users/nico/temp/output.png"
+tresvg::toPNG $pixmap $width $height "output.png"
 
 # Extended procedures (not a part of resvg C-API)
 set xml [tresvg::getXML $tree] ; # Gets simplified XML
@@ -208,3 +208,8 @@ To [RazrFalcon](https://github.com/RazrFalcon), the author of **resvg**, who hel
       fixes some problems with `critcl` and `Tk9`, thanks @andreas-kupries.
     - Adds gitHub Actions workflow to extend resvg C-API.
     - Adds a release with binaries for **macOS** (ARM + Intel), **Windows** and **Linux**.
+*  **30-Jan-2026** : 0.21
+    - Some functions are not part of the resvg API, use `-ignoremissing` parameter to avoid generating errors.
+    - Gives priority to platform files in the lib resvg search for **unix** platform.
+    - Fix `resvg_parse_tree_from_data` procedure was not defined.
+    - Bump resvg version to `0.46.0`.
