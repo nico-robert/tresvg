@@ -3,7 +3,7 @@ use std::os::raw::c_char;
 use crate::{resvg_render_tree, resvg_error};
 
 /// Export to XML (caller must free with resvg_free_string).
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn resvg_tree_to_xml(
     tree: *const resvg_render_tree,
     out_xml: *mut *mut c_char
@@ -36,7 +36,7 @@ pub extern "C" fn resvg_tree_to_xml(
 ///
 /// Should be called to free the string allocated by 
 /// resvg_tree_to_xml after it is no longer needed.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn resvg_free_string(s: *mut c_char) {
     if !s.is_null() {
         unsafe {
@@ -49,7 +49,7 @@ pub extern "C" fn resvg_free_string(s: *mut c_char) {
 /// 
 /// The returned pointer is valid for the lifetime of the program
 /// and must NOT be freed.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn resvg_version_string() -> *const c_char {
     concat!(env!("CARGO_PKG_VERSION"), "\0").as_ptr() as *const c_char
 }
