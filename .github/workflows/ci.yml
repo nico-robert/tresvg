@@ -8,13 +8,23 @@ on:
   workflow_dispatch:
 
 env:
-  RESVG_VERSION: "v0.45.1"
+  RESVG_VERSION: "v0.46.0"
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-2022, macos-latest, macos-13]
+        include:
+          - os: ubuntu-latest
+            artifact_name: linux-x86_64
+          - os: windows-2022
+            artifact_name: win32-x86_64
+          - os: macos-latest
+            artifact_name: macosx-arm
+            rust_target: aarch64-apple-darwin
+          - os: macos-latest
+            artifact_name: macosx-x86_64
+            rust_target: x86_64-apple-darwin
 
     runs-on: ${{ matrix.os }}
 
@@ -68,12 +78,24 @@ jobs:
       with:
         toolchain: stable
 
-    # Build Unix (Linux + macOS)
-    - name: Build resvg (Unix)
-      if: runner.os != 'Windows'
+    # Add Rust target for macOS x86_64
+    - name: Add Rust target for macOS x86_64
+      if: matrix.rust_target == 'x86_64-apple-darwin'
+      run: rustup target add x86_64-apple-darwin
+
+    # Build Unix (Linux)
+    - name: Build resvg (Linux)
+      if: runner.os == 'Linux'
       working-directory: ./resvg-source/crates/c-api
       run: |
         RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release
+
+    # Build macOS (ARM et x86_64)
+    - name: Build resvg (macOS)
+      if: runner.os == 'macOS'
+      working-directory: ./resvg-source/crates/c-api
+      run: |
+        RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release --target ${{ matrix.rust_target }}
 
     # Build Windows
     - name: Build resvg (Windows)
@@ -102,38 +124,21 @@ jobs:
         name: linux-x86_64
         path: artifact/
 
-    # --- Artifact macOS ARM ---
-    - name: Prepare artifacts (macOS ARM)
-      if: matrix.os == 'macos-latest'
+    # --- Artifact macOS ---
+    - name: Prepare artifacts (macOS)
+      if: runner.os == 'macOS'
       run: |
         mkdir -p artifact/include
-        cp resvg-source/target/release/libresvg.dylib artifact/ || true
-        cp resvg-source/target/release/libresvg.a artifact/ || true
+        cp resvg-source/target/${{ matrix.rust_target }}/release/libresvg.dylib artifact/ || true
+        cp resvg-source/target/${{ matrix.rust_target }}/release/libresvg.a artifact/ || true
         cp resvg-source/crates/c-api/resvg.h artifact/include/ || true
         cp resvg-source/crates/c-api/LICENSE-* artifact/
 
-    - name: Upload artifacts (macOS ARM)
-      if: matrix.os == 'macos-latest'
+    - name: Upload artifacts (macOS)
+      if: runner.os == 'macOS'
       uses: actions/upload-artifact@v4
       with:
-        name: macosx-arm
-        path: artifact/
-
-    # --- Artifact macOS Intel ---
-    - name: Prepare artifacts (macOS Intel)
-      if: matrix.os == 'macos-13'
-      run: |
-        mkdir -p artifact/include
-        cp resvg-source/target/release/libresvg.dylib artifact/ || true
-        cp resvg-source/target/release/libresvg.a artifact/ || true
-        cp resvg-source/crates/c-api/resvg.h artifact/include/ || true
-        cp resvg-source/crates/c-api/LICENSE-* artifact/
-
-    - name: Upload artifacts (macOS Intel)
-      if: matrix.os == 'macos-13'
-      uses: actions/upload-artifact@v4
-      with:
-        name: macosx-x86_64
+        name: ${{ matrix.artifact_name }}
         path: artifact/
 
     # --- Artifact Windows ---
