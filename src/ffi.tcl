@@ -1,10 +1,10 @@
-# Copyright (c) 2025 Nicolas ROBERT.
+# Copyright (c) 2025-2026 Nicolas ROBERT.
 # Distributed under MIT license. Please see LICENSE for details.
 
 if {![catch {package require cffi 2.0}]} {
 
     namespace eval tresvg {
-        variable supportedResvgVersions [list 0.45.1 0451]
+        variable supportedResvgVersions [list 0.45.1 0451 0.46.0 0460]
 
         proc transformIdentity {} {
             # Gets the identity transform.
@@ -472,7 +472,6 @@ if {![catch {package require cffi 2.0}]} {
             variable packageDirectory
             variable supportedResvgVersions
 
-            set resvgPath {}
             # First make up list of possible shared library names depending
             # on platform and supported shared library versions.
             set ext [info sharedlibextension]
