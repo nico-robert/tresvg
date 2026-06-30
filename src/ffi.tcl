@@ -4,7 +4,6 @@
 if {![catch {package require cffi 2.0}]} {
 
     namespace eval tresvg {
-        variable supportedResvgVersions [list 0.45.1 0451 0.46.0 0460]
 
         proc transformIdentity {} {
             # Gets the identity transform.
@@ -522,6 +521,13 @@ if {![catch {package require cffi 2.0}]} {
             # On Windows, the latter is probably redundant but...
             lappend searchPaths $packageDirectory
             lappend searchPaths [file dirname [info nameofexecutable]]
+            # Generic case
+            lappend searchPaths [file join $packageDirectory [platform::generic]]
+            # macosx and macos share the same library name, but the directory is different.
+            # Since 9.0.3, we need to map macos to macosx to load the library, 
+            # but we still need to keep the macosx directory for backward compatibility with 8.6 and 9.0.1.
+            lappend searchPaths [file join $packageDirectory \
+            [string map {macos- macosx-} [platform::generic]]]
             # Specific case for macOS where the shared library is installed
             # under '/usr/local/lib'.
             if {$::tcl_platform(platform) eq "unix"} {
