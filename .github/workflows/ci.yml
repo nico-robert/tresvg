@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  RESVG_VERSION: "v0.46.0"
+  RESVG_VERSION: "v0.47.0"
 
 jobs:
   build:
