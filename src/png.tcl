@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Nicolas ROBERT.
+# Copyright (c) 2025-2026 Nicolas ROBERT.
 # Distributed under MIT license. Please see LICENSE for details.
 
 namespace eval tresvg {}
@@ -77,17 +77,10 @@ proc tresvg::encodePNG {data width height} {
     set image_data ""
     set bytes_per_scanline [expr {$width * 4}]
     for {set y 0} {$y < $height} {incr y} {
-        # Filtre 0 (None)
-        append image_data "\x00"
-        set scanline_start [expr {$y * $bytes_per_scanline}]
-        set scanline_end [expr {$scanline_start + $bytes_per_scanline - 1}]
-        for {set i $scanline_start} {$i <= $scanline_end} {incr i} {
-            if {$i < [llength $unpremultiplied_list]} {
-                append image_data [binary format c [lindex $unpremultiplied_list $i]]
-            } else {
-                append image_data "\x00"
-            }
-        }
+        set start [expr {$y * $bytes_per_scanline}]
+        set end   [expr {$start + $bytes_per_scanline - 1}]
+        set bin   [binary format c* [lrange $unpremultiplied_list $start $end]]
+        append image_data "\x00" $bin
     }
 
     set compressed_data [zlib compress $image_data]
@@ -136,11 +129,9 @@ proc tresvg::toBase64 {data width height} {
     # height - height of the image
     #
     # Returns base64 string.
-    set png_file [tresvg::toPNG $data $width $height]
-
     set data_png [tresvg::encodePNG $data $width $height]
 
-    return [binary encode base64 $png_file]
+    return [binary encode base64 $data_png]
 }
 
 # Check if 'critcl' package is available and if 'stb_image_write.h' file exists.
