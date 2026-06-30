@@ -213,3 +213,8 @@ To [RazrFalcon](https://github.com/RazrFalcon), the author of **resvg**, who hel
     - Gives priority to platform files in the lib resvg search for **unix** platform.
     - Fix `resvg_parse_tree_from_data` procedure was not defined.
     - Bump resvg version to `0.46.0`.
+*  **30-Jun-2026** : 0.23
+    - The `tresvg::toBase64` function was not working correctly, the `tresvg::toPNG` procedure was out of place there.
+    - Improves the generation of PNG image data.
+    - Improves search path management for macOS compatibility, in particular for Tcl 9.0.3 and later.
+    - Bump resvg version to `0.47.0`.

@@ -23,17 +23,23 @@
               # Gives priority to platform files in the lib resvg search for `unix` platform.
               # Fix `resvg_parse_tree_from_data` procedure was not defined.
               # Bump resvg version to `0.46.0`.
+# 30-Jun-2026 : v0.23
+              # The `tresvg::toBase64` function was not working correctly, the `tresvg::toPNG` procedure was out of place there.
+              # Improves the generation of PNG image data.
+              # Improves search path management for macOS compatibility, in particular for Tcl 9.0.3 and later.
+              # Bump resvg version to `0.47.0`.
 
 
 package require Tcl 8.6-
 package require platform
 
 namespace eval tresvg {
-    variable version          0.21
-    variable packageDirectory [file dirname [file normalize [info script]]]
-    variable platform         [::platform::generic]
-    variable libDirectory     [file join $packageDirectory $platform]
-    variable resvgMinVersion  "0.45.1"
+    variable version                0.23
+    variable packageDirectory       [file dirname [file normalize [info script]]]
+    variable platform               [::platform::generic]
+    variable libDirectory           [file join $packageDirectory $platform]
+    variable resvgMinVersion        "0.45.1"
+    variable supportedResvgVersions [list 0.45.1 0451 0.46.0 0460 0.47.0 0470]
 }
 
 package provide tresvg $::tresvg::version
