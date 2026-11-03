@@ -218,3 +218,7 @@ To [RazrFalcon](https://github.com/RazrFalcon), the author of **resvg**, who hel
     - Improves the generation of PNG image data.
     - Improves search path management for macOS compatibility, in particular for Tcl 9.0.3 and later.
     - Bump resvg version to `0.47.0`.
+*  **03-Nov-2026** : 0.25
+    - Use binary bytes for pixmap buffer.
+    - Optimize PNG encoding with bytearray.
+    - Bump resvg version to `0.49.0`.

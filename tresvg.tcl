@@ -28,18 +28,21 @@
               # Improves the generation of PNG image data.
               # Improves search path management for macOS compatibility, in particular for Tcl 9.0.3 and later.
               # Bump resvg version to `0.47.0`.
-
+# 03-Nov-2026 : v0.25
+              # Use binary bytes for pixmap buffer.
+              # Optimize PNG encoding with bytearray.
+              # Bump resvg version to `0.49.0`.
 
 package require Tcl 8.6-
 package require platform
 
 namespace eval tresvg {
-    variable version                0.23
+    variable version                0.25
     variable packageDirectory       [file dirname [file normalize [info script]]]
     variable platform               [::platform::generic]
     variable libDirectory           [file join $packageDirectory $platform]
     variable resvgMinVersion        "0.45.1"
-    variable supportedResvgVersions [list 0.45.1 0451 0.46.0 0460 0.47.0 0470]
+    variable supportedResvgVersions [list 0.45.1 0451 0.46.0 0460 0.47.0 0470 0.49.0 0490]
 }
 
 package provide tresvg $::tresvg::version
