@@ -273,6 +273,8 @@ if {![catch {package require cffi 2.0}]} {
             #
             # Returns the pixmap.
             set N [expr {$width * $height * 4}]
+            set pixmap [binary format x$N]
+
             resvg_render $tree $transform $width $height pixmap $N
 
             return $pixmap
@@ -289,9 +291,12 @@ if {![catch {package require cffi 2.0}]} {
             #
             # Returns the pixmap or an empty value if the node has no content.
             set N [expr {$width * $height * 4}]
+            set pixmap [binary format x$N]
+
             if {![resvg_render_node $tree $id $transform $width $height pixmap $N]} {
                 return {}
             }
+
             return $pixmap
         }
 
@@ -833,7 +838,7 @@ if {![catch {package require cffi 2.0}]} {
             transform struct.resvg_transform
             width     uint32_t
             height    uint32_t
-            pixmap    {uchar[N] out}
+            pixmap    {bytes[N] inout}
             N         uint32_t
         }
 
@@ -843,7 +848,7 @@ if {![catch {package require cffi 2.0}]} {
             transform struct.resvg_transform
             width     uint32_t
             height    uint32_t
-            pixmap    {uchar[N] out}
+            pixmap    {bytes[N] inout}
             N         uint32_t
         }
     }
