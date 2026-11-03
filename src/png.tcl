@@ -22,43 +22,25 @@ proc tresvg::createChunk {type data} {
     return $chunk
 }
 
-proc tresvg::unpremultiply {data} {
-    # Unpremultiply image data.
-    # See https://en.wikipedia.org/wiki/Alpha_compositing
-    #
-    # data - image data multiplied.
-    #
-    # Returns: the data unmultiplied.
-    set result {}
-    set size [llength $data]
-
-    for {set offset 0} {$offset < $size} {incr offset 4} {
-        set r [lindex $data $offset]
-        set g [lindex $data [expr {$offset + 1}]]
-        set b [lindex $data [expr {$offset + 2}]]
-        set alpha [lindex $data [expr {$offset + 3}]]
-
-        if {$alpha != 0 && $alpha != 255} {
-            set multiplier [expr {int(round((255.0 / $alpha) * 255))}]
-            set r [expr {($r * $multiplier + 127) / 255}]
-            set g [expr {($g * $multiplier + 127) / 255}]
-            set b [expr {($b * $multiplier + 127) / 255}]
-        }
-
-        lappend result $r $g $b $alpha
-    }
-
-    return $result
-}
-
 proc tresvg::encodePNG {data width height} {
     # Command to generate the PNG image.
     #
-    # data     - image data
+    # data     - image data (premultiplied RGBA byte array)
     # width    - width of the image
     # height   - height of the image
     #
     # Returns: data of the PNG image.
+
+    if {$width <= 0 || $height <= 0} {
+        error "tresvg(error): Calculated dimensions are invalid."
+    }
+
+    set bytes_per_scanline [expr {$width * 4}]
+    set expected [expr {$bytes_per_scanline * $height}]
+    if {[string length $data] != $expected} {
+        error "tresvg: Pixmap size mismatch. Need $expected bytes\
+               for ${width}x${height} image, got [string length $data]"
+    }
 
     # Signature PNG
     set png_sig "\x89PNG\r\n\x1a\n"
@@ -72,15 +54,20 @@ proc tresvg::encodePNG {data width height} {
     append ihdr_data "\x00" ;# Interlace method
     set ihdr_chunk [tresvg::createChunk "IHDR" $ihdr_data]
 
-    set unpremultiplied_list [tresvg::unpremultiply $data]
-
     set image_data ""
-    set bytes_per_scanline [expr {$width * 4}]
     for {set y 0} {$y < $height} {incr y} {
-        set start [expr {$y * $bytes_per_scanline}]
-        set end   [expr {$start + $bytes_per_scanline - 1}]
-        set bin   [binary format c* [lrange $unpremultiplied_list $start $end]]
-        append image_data "\x00" $bin
+        binary scan $data "@[expr {$y * $bytes_per_scanline}]cu$bytes_per_scanline" row
+        set out {}
+        foreach {r g b a} $row {
+            if {$a != 0 && $a != 255} {
+                set half [expr {$a / 2}]
+                set r [expr {($r * 255 + $half) / $a}]
+                set g [expr {($g * 255 + $half) / $a}]
+                set b [expr {($b * 255 + $half) / $a}]
+            }
+            lappend out $r $g $b $a
+        }
+        append image_data "\x00" [binary format c* $out]
     }
 
     set compressed_data [zlib compress $image_data]
@@ -94,28 +81,26 @@ proc tresvg::encodePNG {data width height} {
     append data_png $iend_chunk
 
     return $data_png
-
 }
 
 proc tresvg::toPNG {data width height filename} {
     # Save the rendered SVG image to a PNG file.
     #
-    # data     - The rendered SVG image data.
+    # data     - The rendered SVG image data (premultiplied RGBA byte array).
     # width    - The width of the image.
     # height   - The height of the image.
     # filename - The path to the file where the image will be saved.
     #
     # Returns: Nothing.
-
     set data_png [tresvg::encodePNG $data $width $height]
+    set fp [open $filename wb]
 
     try {
-        set fp [open $filename wb]
         puts -nonewline $fp $data_png
     } on error {result options} {
         error [dict get $options -errorinfo]
     } finally {
-        catch {close $fp}
+        close $fp
     }
 
     return {}
@@ -124,7 +109,7 @@ proc tresvg::toPNG {data width height filename} {
 proc tresvg::toBase64 {data width height} {
     # Convert data to base64 string.
     #
-    # data   - image data
+    # data   - image data (premultiplied RGBA byte array)
     # width  - width of the image
     # height - height of the image
     #
@@ -174,7 +159,6 @@ if {
         #define STB_IMAGE_WRITE_IMPLEMENTATION
         #include "stb_image_write.h"
         #include <stdlib.h>
-        #include <math.h>
 
         #ifndef TCL_SIZE_MAX
             #include <limits.h>
@@ -198,7 +182,6 @@ if {
 
         int width, height;
         Tcl_Size count;
-        Tcl_Obj **data;
 
         if (Tcl_GetIntFromObj(interp, objv[2], &width) != TCL_OK ||
             Tcl_GetIntFromObj(interp, objv[3], &height) != TCL_OK) {
@@ -217,51 +200,38 @@ if {
             return TCL_ERROR;
         }
 
-        if (Tcl_ListObjGetElements(interp, objv[1], &count, &data) != TCL_OK) {
-            return TCL_ERROR;
-        }
+        // The pixmap is a Tcl byte array: premultiplied RGBA, 4 bytes per pixel.
+        unsigned char *pixmap = Tcl_GetByteArrayFromObj(objv[1], &count);
 
-        Tcl_Size expected_count = (Tcl_Size)width * (Tcl_Size)height * 4;
-        if (count != expected_count) {
-            Tcl_SetObjResult(interp, 
+        if ((size_t)count != img_len) {
+            Tcl_SetObjResult(interp,
                 Tcl_ObjPrintf(
-                    "tresvg: Pixmap size mismatch. Need %d values for %dx%d image, got %d", 
-                    (int)expected_count, width, height, (int)count
+                    "tresvg: Pixmap size mismatch. Need %d bytes for %dx%d image, got %d",
+                    (int)img_len, width, height, (int)count
                 )
             );
             return TCL_ERROR;
-        }
+         }
 
-        unsigned char *image = (unsigned char*)Tcl_Alloc(count);
+        // Tcl values can be shared: unpremultiply into a private buffer, never in place.
+        // (Tcl_Alloc panics on failure, it does not return NULL.)
+        unsigned char *image = (unsigned char*)Tcl_Alloc(img_len);
 
-        if (image == NULL) {
-            Tcl_SetResult(interp, "tresvg(error): Cannot alloc image buffer.", TCL_STATIC);
-            return TCL_ERROR;
-        }
-
-        // Unpremultiply
-        int alpha, r, g, b;
-        for (Tcl_Size i = 0; i < count; i += 4) {
-            if (Tcl_GetIntFromObj(interp, data[i + 0], &r) != TCL_OK ||
-                Tcl_GetIntFromObj(interp, data[i + 1], &g) != TCL_OK ||
-                Tcl_GetIntFromObj(interp, data[i + 2], &b) != TCL_OK ||
-                Tcl_GetIntFromObj(interp, data[i + 3], &alpha) != TCL_OK) {
-                Tcl_Free((char*)image);
-                Tcl_SetResult(interp, "tresvg(error): Invalid pixel data.", TCL_STATIC);
-                return TCL_ERROR;
-            }
+        // Unpremultiply, rounded to nearest: (c * 255 + a / 2) / a
+        for (size_t i = 0; i < img_len; i += 4) {
+            unsigned int alpha = pixmap[i + 3];
             if (alpha != 0 && alpha != 255) {
-                unsigned int multiplier = (unsigned int)round((255.0f / (float)alpha) * 255.0f);
-                image[i + 0] = (unsigned char)(((unsigned int)r * multiplier + 127) / 255);
-                image[i + 1] = (unsigned char)(((unsigned int)g * multiplier + 127) / 255);
-                image[i + 2] = (unsigned char)(((unsigned int)b * multiplier + 127) / 255);
-                image[i + 3] = (unsigned char)alpha;
+                unsigned int half = alpha / 2;
+                for (int k = 0; k < 3; k++) {
+                    unsigned int v = ((unsigned int)pixmap[i + k] * 255 + half) / alpha;
+                    image[i + k] = (unsigned char)(v > 255 ? 255 : v);
+                }
             } else {
-                image[i + 0] = (unsigned char)r;
-                image[i + 1] = (unsigned char)g;
-                image[i + 2] = (unsigned char)b;
-                image[i + 3] = (unsigned char)alpha;
+                image[i + 0] = pixmap[i + 0];
+                image[i + 1] = pixmap[i + 1];
+                image[i + 2] = pixmap[i + 2];
             }
+            image[i + 3] = (unsigned char)alpha;
         }
 
         int len;
@@ -275,7 +245,7 @@ if {
 
         Tcl_Obj *result = Tcl_NewByteArrayObj(png, (Tcl_Size)len);
         free(png);
-        
+
         Tcl_SetObjResult(interp, result);
         return TCL_OK;
 
