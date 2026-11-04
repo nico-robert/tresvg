@@ -1,4 +1,4 @@
-name: Build resvg from release
+name: Build lite resvg from release
 
 on:
   workflow_dispatch:
