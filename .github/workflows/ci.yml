@@ -79,25 +79,19 @@ jobs:
       if: matrix.rust_target == 'x86_64-apple-darwin'
       run: rustup target add x86_64-apple-darwin
 
-    # extended.rs uses usvg::WriteOptions / Tree::to_string().
-    - name: Enable usvg writer feature
-      shell: bash
-      working-directory: ./resvg-source/crates/c-api
-      run: cargo add usvg --path ../usvg --no-default-features --features writer
-
     # Build Unix (Linux)
     - name: Build resvg (Linux)
       if: runner.os == 'Linux'
       working-directory: ./resvg-source/crates/c-api
       run: |
-        RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release --no-default-features
+        RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release
 
     # Build macOS (ARM et x86_64)
     - name: Build resvg (macOS)
       if: runner.os == 'macOS'
       working-directory: ./resvg-source/crates/c-api
       run: |
-        RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release --no-default-features --target ${{ matrix.rust_target }}
+        RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release --target ${{ matrix.rust_target }}
 
     # Build Windows
     - name: Build resvg (Windows)
@@ -107,7 +101,7 @@ jobs:
       run: |
         $env:RUSTFLAGS = "-A mismatched-lifetime-syntaxes"
         rustup target add x86_64-pc-windows-gnu --quiet
-        cargo build --release --no-default-features --target x86_64-pc-windows-gnu
+        cargo build --release --target x86_64-pc-windows-gnu
 
     # --- Artifact Linux ---
     - name: Prepare artifacts (Linux)
