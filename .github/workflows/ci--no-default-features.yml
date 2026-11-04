@@ -1,0 +1,162 @@
+name: Build resvg from release
+
+on:
+  workflow_dispatch:
+
+env:
+  RESVG_VERSION: "v0.49.0"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: linux-x86_64
+          - os: windows-2022
+            artifact_name: win32-x86_64
+          - os: macos-latest
+            artifact_name: macosx-arm
+            rust_target: aarch64-apple-darwin
+          - os: macos-latest
+            artifact_name: macosx-x86_64
+            rust_target: x86_64-apple-darwin
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+
+    - name: Clone resvg at specific release
+      run: |
+        git clone --depth 1 --branch ${{ env.RESVG_VERSION }} https://github.com/linebender/resvg.git resvg-source
+
+    # Copy extended files.
+    - name: Copy extended files
+      shell: bash
+      run: |
+        cp resvg-extended/extended.rs resvg-source/crates/c-api/
+        cp resvg-extended/extended.h resvg-source/crates/c-api/
+    
+    # Modify lib.rs to add extended module.
+    - name: Add extended module to lib.rs (Unix)
+      if: runner.os != 'Windows'
+      working-directory: ./resvg-source/crates/c-api
+      run: |
+        if ! grep -q "mod extended;" lib.rs; then
+          echo "" >> lib.rs
+          echo "/// Extended resvg functions." >> lib.rs
+          echo "///" >> lib.rs
+          echo "/// This module provides functions not available in the original **resvg** crate." >> lib.rs
+          echo "///" >> lib.rs
+          echo "/// It is intended to be used as a drop-in replacement, and provide additional features." >> lib.rs
+          echo "mod extended;" >> lib.rs
+        fi
+
+    - name: Add extended module to lib.rs (Windows)
+      if: runner.os == 'Windows'
+      working-directory: ./resvg-source/crates/c-api
+      shell: pwsh
+      run: |
+        $content = Get-Content lib.rs -Raw
+        if ($content -notmatch "mod extended;") {
+          Add-Content lib.rs "`n/// Extended resvg functions."
+          Add-Content lib.rs "///"
+          Add-Content lib.rs "/// This module provides functions not available in the original **resvg** crate."
+          Add-Content lib.rs "///"
+          Add-Content lib.rs "/// It is intended to be used as a drop-in replacement, and provide additional features."
+          Add-Content lib.rs "mod extended;"
+          }
+
+    - name: Install Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+
+    # Add Rust target for macOS x86_64
+    - name: Add Rust target for macOS x86_64
+      if: matrix.rust_target == 'x86_64-apple-darwin'
+      run: rustup target add x86_64-apple-darwin
+
+    # extended.rs uses usvg::WriteOptions / Tree::to_string().
+    - name: Enable usvg writer feature
+      shell: bash
+      working-directory: ./resvg-source/crates/c-api
+      run: cargo add usvg --path ../usvg --no-default-features --features writer
+
+    # Build Unix (Linux)
+    - name: Build resvg (Linux)
+      if: runner.os == 'Linux'
+      working-directory: ./resvg-source/crates/c-api
+      run: |
+        RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release --no-default-features
+
+    # Build macOS (ARM et x86_64)
+    - name: Build resvg (macOS)
+      if: runner.os == 'macOS'
+      working-directory: ./resvg-source/crates/c-api
+      run: |
+        RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release --no-default-features --target ${{ matrix.rust_target }}
+
+    # Build Windows
+    - name: Build resvg (Windows)
+      if: runner.os == 'Windows'
+      working-directory: ./resvg-source/crates/c-api
+      shell: pwsh
+      run: |
+        $env:RUSTFLAGS = "-A mismatched-lifetime-syntaxes"
+        rustup target add x86_64-pc-windows-gnu --quiet
+        cargo build --release --no-default-features --target x86_64-pc-windows-gnu
+
+    # --- Artifact Linux ---
+    - name: Prepare artifacts (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        mkdir -p artifact/include
+        cp resvg-source/target/release/libresvg.so artifact/ || true
+        cp resvg-source/target/release/libresvg.a artifact/ || true
+        cp resvg-source/crates/c-api/resvg.h artifact/include/ || true
+        cp resvg-source/crates/c-api/LICENSE-* artifact/
+
+    - name: Upload artifacts (Linux)
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v5
+      with:
+        name: linux-x86_64
+        path: artifact/
+
+    # --- Artifact macOS ---
+    - name: Prepare artifacts (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        mkdir -p artifact/include
+        cp resvg-source/target/${{ matrix.rust_target }}/release/libresvg.dylib artifact/ || true
+        cp resvg-source/target/${{ matrix.rust_target }}/release/libresvg.a artifact/ || true
+        cp resvg-source/crates/c-api/resvg.h artifact/include/ || true
+        cp resvg-source/crates/c-api/LICENSE-* artifact/
+
+    - name: Upload artifacts (macOS)
+      if: runner.os == 'macOS'
+      uses: actions/upload-artifact@v5
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: artifact/
+
+    # --- Artifact Windows ---
+    - name: Prepare artifacts (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        mkdir artifact/include
+        Copy-Item resvg-source/target/x86_64-pc-windows-gnu/release/libresvg.a artifact -ErrorAction SilentlyContinue
+        Copy-Item resvg-source/target/x86_64-pc-windows-gnu/release/resvg.dll artifact -ErrorAction SilentlyContinue
+        Copy-Item resvg-source/crates/c-api/resvg.h artifact/include -ErrorAction SilentlyContinue
+        Copy-Item resvg-source/crates/c-api/LICENSE-* artifact
+
+    - name: Upload artifacts (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v5
+      with:
+        name: win32-x86_64
+        path: artifact/
