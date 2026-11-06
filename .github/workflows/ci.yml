@@ -14,7 +14,11 @@ jobs:
           - os: ubuntu-latest
             artifact_name: linux-x86_64
           - os: windows-2022
-            artifact_name: win32-x86_64
+            artifact_name: win32-x86_64-gnu
+            rust_target: x86_64-pc-windows-gnu
+          - os: windows-2022
+            artifact_name: win32-x86_64-msvc
+            rust_target: x86_64-pc-windows-msvc
           - os: macos-latest
             artifact_name: macosx-arm
             rust_target: aarch64-apple-darwin
@@ -93,15 +97,15 @@ jobs:
       run: |
         RUSTFLAGS="-A mismatched-lifetime-syntaxes" cargo build --release --target ${{ matrix.rust_target }}
 
-    # Build Windows
+    # Build Windows (GNU and MSVC)
     - name: Build resvg (Windows)
       if: runner.os == 'Windows'
       working-directory: ./resvg-source/crates/c-api
       shell: pwsh
       run: |
         $env:RUSTFLAGS = "-A mismatched-lifetime-syntaxes"
-        rustup target add x86_64-pc-windows-gnu --quiet
-        cargo build --release --target x86_64-pc-windows-gnu
+        rustup target add ${{ matrix.rust_target }} --quiet
+        cargo build --release --target ${{ matrix.rust_target }}
 
     # --- Artifact Linux ---
     - name: Prepare artifacts (Linux)
@@ -143,8 +147,16 @@ jobs:
       shell: pwsh
       run: |
         mkdir artifact/include
-        Copy-Item resvg-source/target/x86_64-pc-windows-gnu/release/libresvg.a artifact -ErrorAction SilentlyContinue
-        Copy-Item resvg-source/target/x86_64-pc-windows-gnu/release/resvg.dll artifact -ErrorAction SilentlyContinue
+        $out = "resvg-source/target/${{ matrix.rust_target }}/release"
+        Copy-Item "$out/resvg.dll" artifact -ErrorAction SilentlyContinue
+        if ("${{ matrix.rust_target }}" -like "*-gnu") {
+          # MinGW
+          Copy-Item "$out/libresvg.a" artifact -ErrorAction SilentlyContinue
+        } else {
+          # MSVC: static lib + import lib
+          Copy-Item "$out/resvg.lib"     artifact -ErrorAction SilentlyContinue
+          Copy-Item "$out/resvg.dll.lib" artifact -ErrorAction SilentlyContinue
+        }
         Copy-Item resvg-source/crates/c-api/resvg.h artifact/include -ErrorAction SilentlyContinue
         Copy-Item resvg-source/crates/c-api/LICENSE-* artifact
 
@@ -152,5 +164,5 @@ jobs:
       if: runner.os == 'Windows'
       uses: actions/upload-artifact@v5
       with:
-        name: win32-x86_64
+        name: ${{ matrix.artifact_name }}
         path: artifact/
